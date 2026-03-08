@@ -13,47 +13,93 @@ def reset_activities():
 
 
 def test_get_activities():
+    # Arrange
+    # (No setup needed for this test)
+
+    # Act
     response = client.get("/activities")
+
+    # Assert
     assert response.status_code == 200
     assert isinstance(response.json(), dict)
 
 
 def test_signup_for_activity():
-    response = client.post("/activities/Chess Club/signup?email=test@mergington.edu")
+    # Arrange
+    email = "test@mergington.edu"
+    activity = "Chess Club"
+
+    # Act
+    response = client.post(f"/activities/{activity}/signup?email={email}")
+
+    # Assert
     assert response.status_code == 200
-    assert "Signed up test@mergington.edu for Chess Club" in response.json()["message"]
-    assert "test@mergington.edu" in activities["Chess Club"]["participants"]
+    assert f"Signed up {email} for {activity}" in response.json()["message"]
+    assert email in activities[activity]["participants"]
 
 
 def test_signup_duplicate():
-    client.post("/activities/Chess Club/signup?email=test@mergington.edu")
-    response = client.post("/activities/Chess Club/signup?email=test@mergington.edu")
+    # Arrange
+    email = "test@mergington.edu"
+    activity = "Chess Club"
+    client.post(f"/activities/{activity}/signup?email={email}")
+
+    # Act
+    response = client.post(f"/activities/{activity}/signup?email={email}")
+
+    # Assert
     assert response.status_code == 400
     assert "Student already signed up" in response.json()["detail"]
 
 
 def test_signup_invalid_activity():
-    response = client.post("/activities/Nonexistent/signup?email=test@mergington.edu")
+    # Arrange
+    email = "test@mergington.edu"
+    invalid_activity = "Nonexistent"
+
+    # Act
+    response = client.post(f"/activities/{invalid_activity}/signup?email={email}")
+
+    # Assert
     assert response.status_code == 404
     assert "Activity not found" in response.json()["detail"]
 
 
 def test_unregister_for_activity():
-    # Add participant first
-    client.post("/activities/Chess Club/signup?email=test@mergington.edu")
-    # Unregister endpoint must exist in app.py for this test to pass
-    response = client.post("/activities/Chess Club/unregister?email=test@mergington.edu")
+    # Arrange
+    email = "test@mergington.edu"
+    activity = "Chess Club"
+    client.post(f"/activities/{activity}/signup?email={email}")
+
+    # Act
+    response = client.post(f"/activities/{activity}/unregister?email={email}")
+
+    # Assert
     assert response.status_code == 200
-    assert "test@mergington.edu" not in activities["Chess Club"]["participants"]
+    assert email not in activities[activity]["participants"]
 
 
 def test_unregister_invalid_activity():
-    response = client.post("/activities/Nonexistent/unregister?email=test@mergington.edu")
+    # Arrange
+    email = "test@mergington.edu"
+    invalid_activity = "Nonexistent"
+
+    # Act
+    response = client.post(f"/activities/{invalid_activity}/unregister?email={email}")
+
+    # Assert
     assert response.status_code == 404
     assert "Activity not found" in response.json()["detail"]
 
 
 def test_unregister_not_signed_up():
-    response = client.post("/activities/Chess Club/unregister?email=test@mergington.edu")
+    # Arrange
+    email = "test@mergington.edu"
+    activity = "Chess Club"
+
+    # Act
+    response = client.post(f"/activities/{activity}/unregister?email={email}")
+
+    # Assert
     assert response.status_code == 400
     assert "Student not signed up" in response.json()["detail"]
